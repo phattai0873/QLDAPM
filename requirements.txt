@@ -1,0 +1,20 @@
+Hệ thống Quản lý Thư viện - Yêu cầu Phần mềm
+
+1. Yêu cầu Chức năng
+- Hệ thống phải cho phép người dùng đăng nhập bằng tài khoản và mật khẩu.
+- Hệ thống phải hỗ trợ tìm kiếm sách theo tiêu đề, tác giả hoặc thể loại.
+- Hệ thống phải cho phép quản trị viên thêm, sửa, xóa thông tin sách.
+- Hệ thống nên cung cấp chức năng đặt trước sách nếu sách đang được mượn.
+- Hệ thống phải gửi thông báo qua email khi sách quá hạn trả.
+- Hệ thống khuyến nghị hiển thị danh sách sách đề xuất dựa trên lịch sử mượn của người dùng.
+
+2. Yêu cầu Phi chức năng
+- Hệ thống phải phản hồi các truy vấn tìm kiếm trong vòng 2 giây.
+- Hệ thống phải đảm bảo tính bảo mật cho thông tin cá nhân của người dùng.
+- Hệ thống nên hỗ trợ tối đa 1000 người dùng đồng thời mà không bị chậm.
+- Hệ thống phải có độ tin cậy 99,9% trong thời gian hoạt động.
+- Giao diện người dùng nên thân thiện và dễ sử dụng trên cả máy tính và điện thoại.
+
+3. Yêu cầu Khác
+- Hệ thống phải được triển khai trên đám mây để dễ dàng mở rộng.
+- Hệ thống khuyến nghị hỗ trợ đa ngôn ngữ để phục vụ người dùng quốc tế.

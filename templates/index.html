@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Phân tích yêu cầu phần mềm</title>
+</head>
+<body>
+    <h2>Tải tệp yêu cầu (.txt)</h2>
+    <form method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".txt">
+        <input type="submit" value="Phân tích">
+    </form>
+
+    {% if requirements %}
+        <h3>Kết quả phân tích</h3>
+        <ul>
+            {% for req in requirements %}
+                <li><b>{{ req.requirement }}</b> — {{ req.type }} — Ưu tiên: {{ req.priority }}</li>
+            {% endfor %}
+        </ul>
+        <h4>Báo cáo</h4>
+        <p>Tổng số yêu cầu: {{ report.total_requirements }}</p>
+        <p>Độ chính xác loại: {{ report.type_accuracy }}</p>
+        <p>Độ chính xác ưu tiên: {{ report.priority_accuracy }}</p>
+        <img src="/static/distribution.png" alt="Biểu đồ">
+    {% endif %}
+</body>
+</html>
