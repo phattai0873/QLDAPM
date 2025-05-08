@@ -1,28 +1,334 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Phân tích yêu cầu phần mềm</title>
+    <title>Phân tích Yêu cầu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .chart-img {
+            max-width: 100%;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 10px;
+            background-color: #fff;
+        }
+        .search-box {
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+        .sort-btn {
+            background: none;
+            border: none;
+            color: #0d6efd;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+        .sort-btn:hover {
+            color: #0a58ca;
+        }
+        .badge {
+            padding: 0.5rem 1rem;
+        }
+        .badge-functional {
+            background-color: #e3f2fd;
+            color: #0d6efd;
+        }
+        .badge-non-functional {
+            background-color: #fff3e0;
+            color: #fd7e14;
+        }
+        .badge-high {
+            background-color: #fbe9e7;
+            color: #d32f2f;
+        }
+        .badge-medium {
+            background-color: #fff3e0;
+            color: #f57c00;
+        }
+        .badge-low {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .bg-gradient-blue {
+            background: linear-gradient(90deg, #2563eb 0%, #1e40af 100%);
+            color: #fff !important;
+        }
+        .btn-gradient {
+            background: linear-gradient(90deg, #16a085 0%, #2980b9 100%);
+            color: #fff;
+            border: none;
+        }
+        .btn-gradient:hover {
+            background: linear-gradient(90deg, #2980b9 0%, #16a085 100%);
+            color: #fff;
+        }
+        .table thead th {
+            background: #1e40af;
+            color: #fff;
+            vertical-align: middle;
+            border: none;
+        }
+        .table thead th .sort-btn {
+            color: #fff;
+        }
+        .table thead th .sort-btn:hover {
+            color: #60a5fa;
+        }
+        .badge-functional {
+            background: #2563eb;
+            color: #fff;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            padding: 0.4em 1em;
+        }
+        .badge-non-functional {
+            background: #3b82f6;
+            color: #fff;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            padding: 0.4em 1em;
+        }
+        .badge-high {
+            background: #6b7280;
+            color: #fff;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            padding: 0.4em 1em;
+        }
+    </style>
 </head>
 <body>
-    <h2>Tải tệp yêu cầu (.txt)</h2>
-    <form method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".txt">
-        <input type="submit" value="Phân tích">
+<div class="container py-5">
+    <h2 class="mb-4 bg-gradient-blue text-center py-3 rounded shadow">
+        <i class="fas fa-chart-line me-2"></i>Phân tích Yêu cầu Phần mềm
+    </h2>
+
+    <form method="post" enctype="multipart/form-data" class="mb-4">
+        <div class="input-group">
+            <input type="file" name="file" accept=".txt,.pdf,.jpg,.jpeg,.png" class="form-control" required>
+            <button type="submit" class="btn btn-gradient">
+                <i class="fas fa-magic me-2"></i>Phân tích
+            </button>
+        </div>
     </form>
 
     {% if requirements %}
-        <h3>Kết quả phân tích</h3>
-        <ul>
-            {% for req in requirements %}
-                <li><b>{{ req.requirement }}</b> — {{ req.type }} — Ưu tiên: {{ req.priority }}</li>
-            {% endfor %}
-        </ul>
-        <h4>Báo cáo</h4>
-        <p>Tổng số yêu cầu: {{ report.total_requirements }}</p>
-        <p>Độ chính xác loại: {{ report.type_accuracy }}</p>
-        <p>Độ chính xác ưu tiên: {{ report.priority_accuracy }}</p>
-        <img src="/static/distribution.png" alt="Biểu đồ">
+    <div class="row g-4">
+        <div class="col-12 col-lg-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-gradient-blue text-white">
+                    <i class="fas fa-chart-pie me-2"></i>Thống kê
+                </div>
+                <div class="card-body">
+                    <p><strong>Tổng số yêu cầu:</strong> {{ report.total_requirements }}</p>
+                    <p><strong>Độ chính xác phân loại:</strong> {{ "%.2f"|format(report.type_accuracy * 100) }}%</p>
+                    <p><strong>Độ chính xác ưu tiên:</strong> {{ "%.2f"|format(report.priority_accuracy * 100) }}%</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-8">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-12">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white">
+                                    <i class="fas fa-search text-muted"></i>
+                                </span>
+                                <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm yêu cầu...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle mb-0" id="requirementsTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>
+                                        <button class="sort-btn" onclick="sortTable(0)">
+                                            # <i class="fas fa-sort"></i>
+                                        </button>
+                                    </th>
+                                    <th>
+                                        <button class="sort-btn" onclick="sortTable(1)">
+                                            Yêu cầu <i class="fas fa-sort"></i>
+                                        </button>
+                                    </th>
+                                    <th>
+                                        <button class="sort-btn" onclick="sortTable(2)">
+                                            Loại <i class="fas fa-sort"></i>
+                                        </button>
+                                    </th>
+                                    <th>
+                                        <button class="sort-btn" onclick="sortTable(3)">
+                                            Ưu tiên <i class="fas fa-sort"></i>
+                                        </button>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for req in requirements %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ req.requirement }}</td>
+                                    <td>
+                                        <span class="badge {% if req.type == 'Functional' %}badge-functional{% else %}badge-non-functional{% endif %}">
+                                            {{ req.type }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if req.priority == 'High' %}badge-high
+                                            {% elif req.priority == 'Medium' %}badge-medium
+                                            {% else %}badge-low
+                                            {% endif %}">
+                                            {{ req.priority }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <div id="noResults" class="text-center py-4" style="display: none;">
+                            <i class="fas fa-search fa-2x mb-3 text-muted"></i>
+                            <h5>Không tìm thấy kết quả</h5>
+                            <p class="text-muted">Hãy thử tìm kiếm với từ khóa khác</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Biểu đồ -->
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <i class="fas fa-chart-bar me-2"></i>Biểu đồ phân tích
+                </div>
+                <div class="card-body text-center">
+                    <img src="{{ chart_url }}" alt="Biểu đồ" class="chart-img mx-auto d-block">
+                </div>
+            </div>
+        </div>
+    </div>
     {% endif %}
+</div>
+
+<!-- Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Cache DOM elements
+    const table = document.getElementById('requirementsTable');
+    const searchInput = document.getElementById('searchInput');
+    const noResults = document.getElementById('noResults');
+    let sortDirection = 1;
+    let currentSortColumn = -1;
+
+    // Debounce function to limit how often a function can be called
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Get all rows except header
+    function getTableRows() {
+        return Array.from(table.getElementsByTagName('tbody')[0].getElementsByTagName('tr'));
+    }
+
+    // Update table display
+    function updateTableDisplay(rows) {
+        const tbody = table.getElementsByTagName('tbody')[0];
+        tbody.innerHTML = '';
+        rows.forEach(row => tbody.appendChild(row));
+    }
+
+    // Search function with debounce
+    const searchTable = debounce(() => {
+        const filter = searchInput.value.toLowerCase();
+        const rows = getTableRows();
+        let hasResults = false;
+
+        rows.forEach(row => {
+            const cells = row.getElementsByTagName('td');
+            const found = Array.from(cells).some(cell => 
+                cell.textContent.toLowerCase().includes(filter)
+            );
+
+            row.style.display = found ? '' : 'none';
+            if (found) hasResults = true;
+        });
+
+        noResults.style.display = hasResults ? 'none' : 'block';
+    }, 300);
+
+
+    function sortTable(n) {
+        const rows = getTableRows();
+        const headers = table.getElementsByTagName('th');
+        
+        // Update sort direction and column
+        if (currentSortColumn === n) {
+            sortDirection *= -1;
+        } else {
+            currentSortColumn = n;
+            sortDirection = 1;
+        }
+        
+        // Update sort icons
+        Array.from(headers).forEach((header, i) => {
+            const icon = header.querySelector('i');
+            if (i === n) {
+                icon.className = sortDirection === 1 ? 'fas fa-sort-up' : 'fas fa-sort-down';
+            } else {
+                icon.className = 'fas fa-sort';
+            }
+        });
+
+        // Sort rows
+        rows.sort((a, b) => {
+            const x = a.getElementsByTagName('td')[n].textContent.trim();
+            const y = b.getElementsByTagName('td')[n].textContent.trim();
+            
+            if (n === 0) {
+                return sortDirection * (parseInt(x) - parseInt(y));
+            }
+            
+            return sortDirection * x.localeCompare(y, 'vi', { sensitivity: 'base' });
+        });
+
+        updateTableDisplay(rows);
+    }
+
+    // Event listeners
+    searchInput.addEventListener('input', searchTable);
+
+    // Initial setup
+    if (table) {
+        const rows = getTableRows();
+        if (rows.length > 0) {
+            sortTable(0); // Sort by index initially
+        }
+    }
+</script>
 </body>
 </html>

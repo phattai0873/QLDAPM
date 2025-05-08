@@ -1,60 +1,36 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request
 import os
-import spacy
-from transformers import pipeline
 import re
 import json
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 import seaborn as sns
+import fitz  # PyMuPDF
+
+# Import các hàm từ classify.py
+from classify import classify_with_phobert, prioritize_requirements
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "uploads"
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
-# Load spaCy model
-try:
-    nlp = spacy.load("en_core_web_sm")
-except:
-    print("Missing spaCy model.")
-    exit()
+# ==== Helper ====
 
-classifier = pipeline("text-classification", model="xlm-roberta-base")
-
-def preprocess_text(text):
-    text = re.sub(r'[^\w\s]', '', text.lower())
-    doc = nlp(text)
-    tokens = [token.text for token in doc if not token.is_stop]
-    return " ".join(tokens)
+def extract_text_from_pdf(pdf_path):
+    text = ""
+    with fitz.open(pdf_path) as doc:
+        for page in doc:
+            text += page.get_text()
+    return text
 
 def extract_requirements(text):
-    requirements = []
-    doc = nlp(text)
-    for sent in doc.sents:
-        if "phải" in sent.text.lower() or "nên" in sent.text.lower():
-            requirements.append(sent.text.strip())
+    # Câu nào chứa "phải", "nên", ... sẽ được xem là yêu cầu
+    sentences = re.split(r"[.?!]\s*", text)
+    requirements = [
+        s.strip() for s in sentences
+        if any(kw in s.lower() for kw in ["phải", "nên", "bắt buộc", "khuyến nghị"])
+    ]
     return requirements
-
-def classify_requirements(requirements):
-    classified = []
-    for req in requirements:
-        result = classifier(req)[0]
-        label = "functional" if result["label"] == "POSITIVE" else "non-functional"
-        classified.append({"requirement": req, "type": label})
-    return classified
-
-def prioritize_requirements(classified):
-    prioritized = []
-    for req in classified:
-        text = req["requirement"].lower()
-        if "phải" in text or "quan trọng" in text:
-            priority = "high"
-        elif "nên" in text or "khuyến nghị" in text:
-            priority = "medium"
-        else:
-            priority = "low"
-        prioritized.append({**req, "priority": priority})
-    return prioritized
 
 def benchmark_manual(manual_data, ai_data):
     manual_types = [row["type"] for row in manual_data]
@@ -83,27 +59,44 @@ def generate_report(ai_data, benchmark_results):
     sns.countplot(x=priorities)
     plt.title("Mức ưu tiên")
     plt.tight_layout()
+    os.makedirs("static", exist_ok=True)
+    plt.savefig("static/report.png")
+
     os.makedirs("output/reports", exist_ok=True)
-    plt.savefig("output/reports/distribution.png")
     with open("output/reports/report.json", "w") as f:
         json.dump(report, f)
     return report
+
+# ==== Routes ====
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
         uploaded_file = request.files["file"]
-        if uploaded_file and uploaded_file.filename.endswith(".txt"):
-            content = uploaded_file.read().decode("utf-8")
+        if uploaded_file:
+            filename = uploaded_file.filename
+            file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            uploaded_file.save(file_path)
+
+            if filename.endswith(".pdf"):
+                content = extract_text_from_pdf(file_path)
+            elif filename.endswith(".txt"):
+                content = open(file_path, encoding="utf-8").read()
+            else:
+                return "Unsupported file type", 400
+
             requirements = extract_requirements(content)
-            classified = classify_requirements(requirements)
+            classified = classify_with_phobert(requirements)
             prioritized = prioritize_requirements(classified)
-            manual_data = prioritized  # Giả lập
+
+            # Benchmark giả lập
+            manual_data = prioritized
             benchmark = benchmark_manual(manual_data, prioritized)
             report = generate_report(prioritized, benchmark)
-            return render_template("index.html", 
-                requirements=prioritized, 
-                report=report, 
+
+            return render_template("index.html",
+                requirements=prioritized,
+                report=report,
                 chart_url="/static/report.png")
 
     return render_template("index.html", requirements=None)
